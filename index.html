@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AI FarmGuard - Real-Time Weather Integration & Climate Risk Intelligence for Farmers. Live weather forecasts, disease vulnerability alerts, smart spraying windows, and irrigation advisories.">
+  <meta name="keywords" content="AI FarmGuard, Weather API, Smart Farming, Agritech, Crop Protection, Irrigation Advisor, Spraying Window, Precision Agriculture">
+  <meta name="author" content="AI FarmGuard Intelligence">
+  
+  <title>AI FarmGuard | Real-Time Weather Integration & Climate Advisory</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌱</text></svg>">
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <div class="app-wrapper">
+    <!-- Header Navigation -->
+    <header class="app-header">
+      <div class="brand-container">
+        <div class="brand-logo">🌱</div>
+        <div>
+          <h1 class="brand-title">AI FarmGuard</h1>
+          <div class="brand-subtitle">Real-Time Weather & Climate Risk Intelligence</div>
+        </div>
+      </div>
+
+      <!-- Search Controls -->
+      <div class="search-controls">
+        <div class="search-input-box">
+          <span class="search-icon-inside">🔍</span>
+          <input type="text" id="location-search-input" placeholder="Search city, farming region, or coordinates..." autocomplete="off">
+          <div class="suggestions-dropdown" id="search-suggestions-dropdown" style="display: none;"></div>
+        </div>
+        <button class="btn-control" id="btn-use-gps" title="Use current GPS location">🎯 GPS</button>
+      </div>
+
+      <!-- Actions -->
+      <div class="header-right-actions">
+        <button class="btn-control btn-brand" id="btn-scroll-scanner" title="AI Crop & Disease Scanner">📷 Scan Crop</button>
+        <button class="btn-control" id="btn-open-simulator" title="Test weather scenario impact">⚡ Simulator</button>
+        <button class="btn-control btn-brand" id="btn-export-report" title="Export printable advisory report">📄 Export Report</button>
+        <button class="btn-control" id="btn-toggle-unit">°C Units</button>
+        <button class="btn-control" id="btn-toggle-theme">🌙 Dark</button>
+      </div>
+    </header>
+
+    <!-- Agricultural Region Presets Bar -->
+    <div style="margin-bottom: 1.5rem;">
+      <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; margin-bottom: 0.5rem; letter-spacing: 0.05em;">
+        Quick Select Agricultural Hotspots:
+      </div>
+      <div id="preset-locations-container" class="crop-selector-bar"></div>
+    </div>
+
+    <!-- Hero Weather Section -->
+    <section id="hero-section"></section>
+
+    <!-- Main Dashboard Grid -->
+    <main class="main-dashboard-grid">
+      <!-- Left Main Column -->
+      <div>
+        <!-- Weather Metrics 8-Grid -->
+        <section style="margin-bottom: 2rem;">
+          <div class="section-title-row">
+            <h2 class="section-h2">📊 Live Climate Metrics</h2>
+            <span style="font-size: 0.8rem; color: var(--text-muted);">Real-time Telemetry via Open-Meteo API</span>
+          </div>
+          <div id="metrics-grid-container" class="metrics-8-grid"></div>
+        </section>
+
+        <!-- Climate Alerts & Warnings -->
+        <section style="margin-bottom: 2rem;">
+          <div class="section-title-row">
+            <h2 class="section-h2">🚨 Climate Risk Warnings & Mitigation</h2>
+            <span style="font-size: 0.8rem; color: var(--text-muted);">Real-time Threshold Engine</span>
+          </div>
+          <div id="alerts-container" class="alerts-list-container"></div>
+        </section>
+
+        <!-- AI Crop & Disease Detection Scanner Section -->
+        <section id="ai-crop-scanner-section" style="margin-bottom: 2rem;">
+          <div class="scanner-card">
+            <div class="section-title-row">
+              <div>
+                <h2 class="section-h2" style="display: flex; align-items: center; gap: 0.5rem;">
+                  🔬 AI Crop & Disease Scanner
+                  <span style="font-size: 0.75rem; background: rgba(16, 185, 129, 0.2); color: var(--color-brand); border: 1px solid rgba(16, 185, 129, 0.4); padding: 0.15rem 0.6rem; border-radius: 20px; font-weight: 700;">Vision AI v2.4</span>
+                </h2>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">
+                  Upload leaf photo or test sample image for automated computer vision disease identification & microclimate risk assessment.
+                </p>
+              </div>
+
+              <!-- Scanner Mode Switcher -->
+              <div class="scanner-mode-tabs">
+                <button class="scanner-tab-btn active" id="tab-scan-preset" data-mode="presets">🖼️ Sample Presets</button>
+                <button class="scanner-tab-btn" id="tab-scan-upload" data-mode="upload">📁 Upload Image</button>
+                <button class="scanner-tab-btn" id="tab-scan-camera" data-mode="camera">📷 Live Camera</button>
+              </div>
+            </div>
+
+            <!-- Scanner Grid -->
+            <div class="scanner-grid-container">
+              <!-- Left Column: Input Viewport & Samples -->
+              <div>
+                <div class="scanner-viewport-box" id="scanner-viewport">
+                  <div class="scanner-laser-beam"></div>
+
+                  <!-- Default Dropzone Prompt (shown in Upload mode) -->
+                  <div class="scanner-dropzone-content" id="scanner-upload-prompt" style="display: none;">
+                    <div class="scanner-drop-icon">🍃</div>
+                    <div style="font-size: 0.95rem; font-weight: 700; color: var(--text-main);">Drop leaf photo here or click to browse</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">Supports PNG, JPG, WEBP formats up to 10MB</div>
+                    <input type="file" id="scanner-file-input" accept="image/*" style="display: none;">
+                  </div>
+
+                  <!-- Live Camera Viewfinder (shown in Camera mode) -->
+                  <div id="scanner-camera-viewfinder" style="display: none; width: 100%; height: 100%; position: relative; text-align: center;">
+                    <video id="scanner-video-feed" autoplay playsinline style="width: 100%; max-height: 320px; object-fit: cover; border-radius: var(--radius-sm);"></video>
+                    <button class="btn-control btn-brand" id="btn-capture-camera" style="position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);">📸 Snap & Analyze</button>
+                  </div>
+
+                  <!-- Image & Canvas Overlay Container -->
+                  <div class="scanner-image-container" id="scanner-image-wrapper">
+                    <img id="scanner-target-img" class="scanner-display-img" src="assets/wheat_rust.png" alt="Crop Leaf Scan Target">
+                    <canvas id="scanner-keypoint-canvas" class="scanner-keypoint-canvas"></canvas>
+                  </div>
+                </div>
+
+                <!-- 1-Click Sample Preset Gallery -->
+                <div style="margin-top: 1rem;">
+                  <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">
+                    ⚡ Test 1-Click Sample Diagnostics:
+                  </div>
+                  <div class="sample-presets-gallery" id="sample-presets-container">
+                    <div class="sample-preset-card active" data-preset="wheat_rust">
+                      <img class="sample-preset-thumb" src="assets/wheat_rust.png" alt="Wheat Rust">
+                      <span class="sample-preset-title">🌾 Wheat Rust</span>
+                    </div>
+                    <div class="sample-preset-card" data-preset="rice_blast">
+                      <img class="sample-preset-thumb" src="assets/rice_blast.png" alt="Rice Blast">
+                      <span class="sample-preset-title">🌾 Rice Blast</span>
+                    </div>
+                    <div class="sample-preset-card" data-preset="tomato_blight">
+                      <img class="sample-preset-thumb" src="assets/tomato_blight.png" alt="Tomato Blight">
+                      <span class="sample-preset-title">🍅 Tomato Blight</span>
+                    </div>
+                    <div class="sample-preset-card" data-preset="healthy_leaf">
+                      <img class="sample-preset-thumb" src="assets/healthy_leaf.png" alt="Healthy Leaf">
+                      <span class="sample-preset-title">🌱 Healthy Leaf</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right Column: Real-Time Diagnostic Dashboard -->
+              <div>
+                <div class="diagnostic-results-box" id="diagnostic-output-card">
+                  <!-- Disease & Severity Header -->
+                  <div class="diagnostic-header-row">
+                    <div>
+                      <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">AI Diagnosis Result</div>
+                      <div class="diagnostic-disease-name" id="diag-disease-name">Wheat Stripe Rust</div>
+                      <div style="font-size: 0.75rem; color: var(--text-muted); font-style: italic;" id="diag-scientific-name">Puccinia striiformis</div>
+                    </div>
+                    <div id="diag-severity-badge" class="severity-pill High">High Severity</div>
+                  </div>
+
+                  <!-- Confidence Score Gauge -->
+                  <div class="confidence-bar-container">
+                    <div class="confidence-bar-label">
+                      <span>Vision AI Confidence Score</span>
+                      <span id="diag-confidence-val" style="color: var(--color-brand); font-weight: 700;">97.4%</span>
+                    </div>
+                    <div class="confidence-track">
+                      <div class="confidence-fill" id="diag-confidence-bar" style="width: 97.4%;"></div>
+                    </div>
+                  </div>
+
+                  <!-- Symptoms Summary -->
+                  <div class="remedy-card-box">
+                    <div class="remedy-title">🔍 Identified Pathology & Symptoms</div>
+                    <div id="diag-symptoms-text" style="color: var(--text-main);">
+                      Linear yellow-orange powdery pustules along leaf veins, chlorotic leaf tissue, premature leaf senescence.
+                    </div>
+                  </div>
+
+                  <!-- Climate Escalation Correlation -->
+                  <div id="diag-climate-impact-box" class="remedy-card-box" style="border-color: rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.08);">
+                    <div class="remedy-title" style="color: #ef4444;" id="diag-climate-title">🚨 Weather Accelerating Spore Spread!</div>
+                    <div id="diag-climate-text" style="color: var(--text-main);">
+                      High relative humidity provides free moisture for spore germination. Ambient temperature is inside optimal replication range.
+                    </div>
+                  </div>
+
+                  <!-- Agronomic Remedy & Dosage -->
+                  <div class="remedy-card-box">
+                    <div class="remedy-title">🧪 Agronomic Remediation & Dosage</div>
+                    <div style="margin-top: 0.25rem;">
+                      <strong style="color: var(--color-brand);">Biological Option:</strong>
+                      <span id="diag-bio-text">Spray Bacillus subtilis @ 2.5 L/ha early morning.</span>
+                    </div>
+                    <div style="margin-top: 0.25rem;">
+                      <strong style="color: var(--color-primary);">Chemical Treatment:</strong>
+                      <span id="diag-chem-text">Apply Propiconazole 25% EC @ 1 ml/L.</span>
+                    </div>
+                    <div style="margin-top: 0.25rem;">
+                      <strong style="color: var(--color-warning);">Cultural Practice:</strong>
+                      <span id="diag-cult-text">Avoid excess nitrogen fertilization.</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Crop & Disease Intelligence Section -->
+        <section style="margin-bottom: 2rem;">
+          <div class="section-title-row">
+            <h2 class="section-h2">🌾 Crop & Disease Vulnerability Radar</h2>
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+              <label for="crop-stage-select" style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Stage:</label>
+              <select id="crop-stage-select" class="btn-control" style="padding: 0.35rem 0.7rem; font-size: 0.8rem;"></select>
+            </div>
+          </div>
+
+          <!-- Crop Selection Pills -->
+          <div id="crop-selector-pills" class="crop-selector-bar"></div>
+
+          <!-- Disease Cards -->
+          <div id="disease-grid-container" class="disease-grid"></div>
+        </section>
+
+        <!-- Smart Action Window Scheduler -->
+        <section style="margin-bottom: 2rem;">
+          <div class="section-title-row">
+            <h2 class="section-h2">⏰ Smart Action Windows & Farm Advisory</h2>
+            <span style="font-size: 0.8rem; color: var(--text-muted);">Optimal Window Calculation</span>
+          </div>
+
+          <!-- Advisories Tab Boxes -->
+          <div id="advisories-tab-row" class="action-tabs-row"></div>
+
+          <!-- 24-Hour Safest Window Schedule Table -->
+          <div class="section-title-row" style="margin-top: 1.5rem; margin-bottom: 0.75rem;">
+            <h3 style="font-family: var(--font-heading); font-size: 1.1rem; font-weight: 700;">
+              🗓️ 24-Hour Safest Operation Window Matrix
+            </h3>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">
+              Color-coded safety rating per hour
+            </div>
+          </div>
+          <div id="schedule-matrix-container"></div>
+        </section>
+      </div>
+
+      <!-- Right Column: Forecast Visualizer -->
+      <div>
+        <!-- Hourly Forecast Curve Chart -->
+        <div class="forecast-card">
+          <div class="section-title-row">
+            <h2 class="section-h2">📈 24-Hour Temperature & Rain Curve</h2>
+          </div>
+          <div id="hourly-chart-container" style="min-height: 180px;"></div>
+        </div>
+
+        <!-- 7-Day Extended Forecast -->
+        <div class="forecast-card">
+          <div class="section-title-row">
+            <h2 class="section-h2">📅 7-Day Extended Outlook</h2>
+          </div>
+          <div id="daily-forecast-container" class="daily-forecast-list"></div>
+        </div>
+
+        <!-- System Information Card -->
+        <div class="advisory-box" style="background: rgba(16, 185, 129, 0.08); border-color: var(--border-card-bright);">
+          <div class="advisory-title" style="color: var(--color-brand);">🛡️ AI FarmGuard System Integrity</div>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.4rem;">
+            Continuously analyzing ambient humidity, solar irradiance, leaf wetness, and wind velocity against agronomic pathogen thresholds to minimize crop losses and input waste.
+          </p>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer style="margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border-card); text-align: center; font-size: 0.8rem; color: var(--text-dim);">
+      AI FarmGuard Real-Time Weather Integration • Empowering Precision Agriculture Worldwide
+    </footer>
+  </div>
+
+  <!-- Interactive Weather Simulator Modal -->
+  <div class="modal-overlay" id="simulator-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 style="font-family: var(--font-heading); font-size: 1.3rem;">⚡ AI Weather Scenario Simulator</h2>
+        <button class="btn-control" id="btn-close-simulator">✕ Close</button>
+      </div>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">
+        Adjust environmental sliders below to simulate extreme weather shifts (e.g. sudden rainstorms, heatwaves, or gale winds) and observe real-time AI advisory response.
+      </p>
+
+      <div class="sim-slider-group">
+        <div class="sim-slider-label">
+          <span>Ambient Temperature (°C)</span>
+          <span id="sim-slider-temp-val">28</span>°C
+        </div>
+        <input type="range" id="sim-slider-temp" min="0" max="48" value="28">
+      </div>
+
+      <div class="sim-slider-group">
+        <div class="sim-slider-label">
+          <span>Wind Speed (km/h)</span>
+          <span id="sim-slider-wind-val">12</span> km/h
+        </div>
+        <input type="range" id="sim-slider-wind" min="0" max="50" value="12">
+      </div>
+
+      <div class="sim-slider-group">
+        <div class="sim-slider-label">
+          <span>Rainfall Probability (%)</span>
+          <span id="sim-slider-rain-val">20</span>%
+        </div>
+        <input type="range" id="sim-slider-rain" min="0" max="100" value="20">
+      </div>
+
+      <div class="sim-slider-group">
+        <div class="sim-slider-label">
+          <span>Relative Humidity (%)</span>
+          <span id="sim-slider-hum-val">65</span>%
+        </div>
+        <input type="range" id="sim-slider-hum" min="20" max="100" value="65">
+      </div>
+
+      <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+        <button class="btn-control btn-brand" id="btn-reset-simulation" style="flex: 1;">🔄 Reset to Live API Data</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Export Advisory Report Modal -->
+  <div class="modal-overlay" id="export-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 style="font-family: var(--font-heading); font-size: 1.3rem;">📄 Farm Advisory Summary Report</h2>
+        <button class="btn-control" id="btn-close-export">✕ Close</button>
+      </div>
+
+      <div id="export-report-body" style="margin-bottom: 1.5rem;"></div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 1rem;">
+        <button class="btn-control btn-brand" id="btn-trigger-print">🖨️ Print / Save PDF Report</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Module Script -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
